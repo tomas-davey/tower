@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Container, Typography, Box, Grid2 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import './HomePage.module.css'
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -16,10 +17,11 @@ const HomePage = () => {
       <Container sx={{ marginTop: 8, alignItems: 'center', display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '100%' }}>
+    height: '100%',
+     backgroundColor: '#3F7CB6'  }}>
         <Grid2 container spacing={0} alignItems="center">
           {/* Left Section */}
-          <Grid2 size={6}>
+          <Grid2 item size={{xs: 12, sm: 6}}>
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
               <Typography variant="h3" gutterBottom>
                 Welcome to My Games 
@@ -40,7 +42,7 @@ const HomePage = () => {
           </Grid2>
 
           {/* Right Section */}
-          <Grid2 size={6}>
+          <Grid2 size={{xs: 12, sm: 6}}>
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <img
                 src="/logo192.png"

@@ -1,0 +1,7 @@
+html {
+    height: 100%
+}
+body {
+    background-color: #3F7CB6;
+    margin: 0; /* Optional: Removes default margin for the body */
+  }

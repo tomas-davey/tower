@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Box, Grid2, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,66 +18,160 @@ const sampleGrid = [
 ];
 
 const Strands = () => {
-  const [letterGrid, setLetterGrid] = useState(sampleGrid); // Fixed sample grid
-  const [currentPath, setCurrentPath] = useState([]);  // Stores the sequence of selected letters
-  const [validWords, setValidWords] = useState([]);  // List of formed words
-  const [highlightedCells, setHighlightedCells] = useState([]);  // Track the cells of found words
-  const [gameOver, setGameOver] = useState(false);  // Check if game is over
+  const [letterGrid, setLetterGrid] = useState(sampleGrid);
+  const [currentPath, setCurrentPath] = useState([]);
+  const [validWords, setValidWords] = useState([]);
+  const [highlightedCells, setHighlightedCells] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [isSwiping, setIsSwiping] = useState(false);  // Tracks if a swipe is in progress
-
-  // Reset current word path
-  const resetCurrentPath = () => {
-    setCurrentPath([]);
-  };
+  
+  const gridRef = useRef(null);
+  const isSwipingRef = useRef(false);
 
   // Check if two cells are adjacent (either horizontally, vertically, or diagonally)
-  const isAdjacent = (lastCell, rowIndex, colIndex) => {
+  const isAdjacent = useCallback((lastCell, rowIndex, colIndex) => {
     const rowDiff = Math.abs(lastCell.row - rowIndex);
     const colDiff = Math.abs(lastCell.col - colIndex);
     
     // Check if it's adjacent and not the same cell
     return (rowDiff <= 1 && colDiff <= 1) && (rowDiff !== 0 || colDiff !== 0);
-  };
-  // Handle mouse down for swipe
-  const handleStart = (rowIndex, colIndex, letter) => {
-    if (gameOver) return; // Don't allow interaction after game over
-    setFeedbackMessage(null)
-    setIsSwiping(true);
-    setCurrentPath([{ letter, row: rowIndex, col: colIndex }]); // Start a new word
-  };
+  }, []);
 
   let lastMoveTime = 0;
-const throttleInterval = 10;
+  const throttleInterval = 10;
 
-  const handleMove = (rowIndex, colIndex, letter) => {
-    if (!isSwiping || currentPath.length === 0) return;
+  // Get the cell at a specific touch point
+  const getCellAtPoint = useCallback((clientX, clientY) => {
+    if (!gridRef.current) return null;
+  
+    const gridRect = gridRef.current.getBoundingClientRect();
+    const rows = letterGrid.length;
+    const cols = letterGrid[0].length;
+  
+    // Calculate the dimensions of each cell within the actual grid
+    const cellWidth = gridRect.width / cols;
+    const cellHeight = gridRect.height / rows;
+  
+    // Get the position of the touch/click relative to the grid
+    const relativeX = clientX - gridRect.left;
+    const relativeY = clientY - gridRect.top;
+  
+    // Calculate the corresponding row and column indices
+    const colIndex = Math.floor(relativeX / cellWidth);
+    const rowIndex = Math.floor(relativeY / cellHeight);
+  
+    // Ensure the indices are within valid bounds of the grid
+    if (
+      rowIndex >= 0 &&
+      rowIndex < rows &&
+      colIndex >= 0 &&
+      colIndex < cols
+    ) {
+      return {
+        rowIndex,
+        colIndex,
+        letter: letterGrid[rowIndex][colIndex],
+      };
+    }
+  
+    return null;
+  }, [letterGrid]);
+  
+  
+
+
+  // Handle touch/mouse start for swipe
+  const handleStart = useCallback((event) => {
+    if (gameOver) return;
+    
+    // Prevent default to stop scrolling/selection
+    event.preventDefault();
+    
+    // Determine touch point (works for both touch and mouse events)
+    const clientX = event.type.includes('touch') 
+      ? event.touches[0].clientX 
+      : event.clientX;
+    const clientY = event.type.includes('touch') 
+      ? event.touches[0].clientY 
+      : event.clientY;
+    
+    const cellAtPoint = getCellAtPoint(clientX, clientY);
+    
+    if (cellAtPoint) {
+      isSwipingRef.current = true;
+      setCurrentPath([{ 
+        letter: cellAtPoint.letter, 
+        row: cellAtPoint.rowIndex, 
+        col: cellAtPoint.colIndex 
+      }]);
+      setFeedbackMessage(cellAtPoint.letter);
+    }
+  }, [gameOver, getCellAtPoint]);
+
+  // Handle touch/mouse move for swipe
+  const handleMove = useCallback((event) => {
+    if (!isSwipingRef.current) return;
     const currentTime = Date.now();
     if (currentTime - lastMoveTime < throttleInterval) {
-        console.log("got ya")
         return;
       }
-    
       lastMoveTime = currentTime;
+    // Prevent default to stop scrolling/selection
+    
+    // Determine touch point (works for both touch and mouse events)
+    const clientX = event.type.includes('touch') 
+      ? event.touches[0].clientX 
+      : event.clientX;
+    const clientY = event.type.includes('touch') 
+      ? event.touches[0].clientY 
+      : event.clientY;
+    
+    const cellAtPoint = getCellAtPoint(clientX, clientY);
+    
+    if (cellAtPoint && currentPath.length > 0) {
+      const lastCell = currentPath[currentPath.length - 1];
 
-    const lastCell = currentPath[currentPath.length - 1];
-  
-    if (isAdjacent(lastCell, rowIndex, colIndex) && isCellLastInPath(rowIndex, colIndex) ) {
-        currentPath.pop();
+      if (isAdjacent(lastCell, cellAtPoint.rowIndex, cellAtPoint.colIndex) && isCellLastInPath(cellAtPoint.rowIndex,cellAtPoint.colIndex) ) {
+        setCurrentPath(prevPath => prevPath.slice(0, -1));
+        const word = currentPath.slice(0, -1).map(cell => cell.letter).join('');
+        setFeedbackMessage(word);
+      }
+      // Check if the new cell is adjacent and not already in the path
+      if (isAdjacent(lastCell, cellAtPoint.rowIndex, cellAtPoint.colIndex) &&
+          !currentPath.some(cell => 
+            cell.row === cellAtPoint.rowIndex && 
+            cell.col === cellAtPoint.colIndex)) {
+        
+        // Add the new cell to the path
+        setCurrentPath(prev => [
+          ...prev, 
+          { 
+            letter: cellAtPoint.letter, 
+            row: cellAtPoint.rowIndex, 
+            col: cellAtPoint.colIndex 
+          }
+        ]);
+        
+        // Update feedback message
+        const word = currentPath.map(cell => cell.letter).join('') + cellAtPoint.letter;
+        setFeedbackMessage(word);
+      }
     }
-     if (isAdjacent(lastCell, rowIndex, colIndex) && !isCellInPath(rowIndex, colIndex) ) {
+  }, [currentPath, isAdjacent, getCellAtPoint]);
 
-      setCurrentPath((prev) => [...prev, { letter, row: rowIndex, col: colIndex }]);
-    }
-    const word = currentPath.map((cell) => cell.letter).join('');
-
-    setFeedbackMessage(word);
+  const isCellLastInPath = (rowIndex, colIndex) => {
+    const lastCell = currentPath[currentPath.length - 2];
+    return lastCell && lastCell.row === rowIndex && lastCell.col === colIndex;
   };
 
-  // Handle mouse up or touch end to finalize the swipe
-  const handleEnd = () => {
+  // Handle touch/mouse end to finalize the swipe
+  const handleEnd = useCallback((event) => {
     if (gameOver) return;
-    setIsSwiping(false); // End the swipe
+    
+    // Prevent default to stop scrolling/selection
+    event.preventDefault();
+    
+    isSwipingRef.current = false;
 
     // Only check for valid words when the user has stopped moving
     if (currentPath.length >= 3) {
@@ -100,34 +194,16 @@ const throttleInterval = 10;
       }
     }
 
-    resetCurrentPath(); // Clear the path after word submission
-  };
-
-  // Check if a cell is already in the current path
-  const isCellInPath = (rowIndex, colIndex) => {
-    return currentPath.some(cell => cell.row === rowIndex && cell.col === colIndex);
-  };
-  const isCellLastInPath = (rowIndex, colIndex) => {
-    const lastCell = currentPath[currentPath.length - 2];
-    return lastCell && lastCell.row === rowIndex && lastCell.col === colIndex;
-  };
-
-  // Handle the game reset
-  const handleResetGame = () => {
-    setLetterGrid(sampleGrid);
+    // Reset the current path
     setCurrentPath([]);
-    setValidWords([]);
-    setHighlightedCells([]);
-    setFeedbackMessage('');
-    setGameOver(false);
+  }, [gameOver, currentPath, validWords, wordList]);
+
+  // Navigation
+  const navigate = useNavigate();
+  const handleMoveOn = () => {
+    navigate('/cryptic');
   };
 
-  // Handle game over
-  const navigate = useNavigate();
-  
-  const handleMoveOn = () => {
-    navigate('/finish'); // Navigate to the first game
-  };
   // Check if all words are found
   const allWordsFound = validWords.length === wordList.length;
 
@@ -137,32 +213,38 @@ const throttleInterval = 10;
         Time well spent
       </Typography>
 
-      <Box display="flex" justifyContent="center" mb={2}>
-        {/* Grid displaying the letters */}
-        <Grid2 container spacing={1} justifyContent="center" style={{ maxWidth: '330px' }}>
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        mb={2}
+        // Global touch and mouse handlers
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
+        onMouseDown={handleStart}
+        onMouseMove={handleMove}
+        onMouseUp={handleEnd}
+        onMouseLeave={handleEnd}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <Grid2 container spacing={1} justifyContent="center" style={{ maxWidth: '260px' }}      ref={gridRef}>
           {letterGrid.map((row, rowIndex) => (
             <Grid2 container item key={rowIndex} spacing={1} justifyContent="center">
               {row.map((letter, colIndex) => (
                 <Grid2 item size={2} xs={2} key={colIndex}>
                   <Button
                     size="large"
-                    onTouchStart={() => handleStart(rowIndex, colIndex, letter)}
-                    onTouchMove={() => handleMove(rowIndex, colIndex, letter)}
-                    onTouchEnd={handleEnd}
-                    onMouseDown={() => handleStart(rowIndex, colIndex, letter)}
-                    onMouseMove={() => handleMove(rowIndex, colIndex, letter)}
-                    onMouseUp={handleEnd}
                     style={{
                       minWidth: '10px',
                       width: '35px',
                       height: '40px',
                       fontSize: '20px',
                       backgroundColor:
-                        isCellInPath(rowIndex, colIndex) // Cells in current path are blue
+                        currentPath.some(cell => cell.row === rowIndex && cell.col === colIndex)
                           ? 'blue'
-                          : highlightedCells.some(cell => cell.row === rowIndex && cell.col === colIndex) // Cells in found words are green
+                          : highlightedCells.some(cell => cell.row === rowIndex && cell.col === colIndex)
                           ? 'green'
-                          : 'transparent', // Other cells are transparent
+                          : 'transparent',
                       color: 'black',
                     }}
                   >
@@ -180,17 +262,10 @@ const throttleInterval = 10;
         {feedbackMessage}
       </Typography>
 
-      <Box display="flex" justifyContent="center" mb={2}>
-      </Box>
-
-      {/* Valid Words Display */}
-      <Box display="flex" justifyContent="center" >
-       
-     
-          <Typography variant="h6" padding='8px'>
-            {validWords.length} / {wordList.length} Words Found
-          </Typography>
-   
+      <Box display="flex" justifyContent="center">
+        <Typography variant="h6" padding='8px'>
+          {validWords.length} / {wordList.length} Words Found
+        </Typography>
       </Box>
 
       {/* Show Move On button if all words are found */}

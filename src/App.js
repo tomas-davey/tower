@@ -7,6 +7,7 @@ import SpellingBeeGame from './games/SpellingBee/spellingBeeGame.js';
 import FinishPage from './pages/FinishPage.js';
 import MiniCrossword from './games/Mini/miniGame.js';
 import Strands from './games/Strands/strands.js';
+import MinuteCryptic from './games/Cryptic/cryptic.js';
 
 const App = () => {
   return (
@@ -38,6 +39,13 @@ const App = () => {
                element={
                  <GamePage>
                    <Strands />
+                 </GamePage>
+               } 
+        />
+         <Route path="/cryptic" 
+               element={
+                 <GamePage>
+                   <MinuteCryptic />
                  </GamePage>
                } 
         />

@@ -52,8 +52,7 @@ const PangramGame = () => {
     if (inputSet.size === pangramSet.size && [...inputSet].every(letter => pangramSet.has(letter))) {
         if (pangramWord === input) {
             setFound(true);
-            setMessage(`Congratulations! You found the pangram: "${pangramWord}"`);
-        }
+            setMessage(`Congratulations! You found the pangram: "${pangramWord}"`);        }
         else {
             setMessage(`Oops! Try again. This is not the pangram`);
         }
@@ -70,25 +69,20 @@ const PangramGame = () => {
       <Typography variant="h6" gutterBottom>
         Find the word that uses all of these letters:
       </Typography>
-
       <Grid2 container spacing={1} justifyContent="center" sx={{ marginBottom: 2 }}>
-        {letters.map((letter, index) => (
-          <Grid2 size={1.5} xs={1.5} key={index}>
-            <Button 
-              variant="outlined" 
-              fullWidth
-              onClick={() => handleLetterClick(letter)}
-              disabled={found}
-            >
-              {letter}
-            </Button>
-          </Grid2>
-        ))}
-      </Grid2>
+  {letters.map((letter, index) => (
+    <Grid2 item xs={1} key={index}>  {/* Adjust xs value as needed */}
+      <Button 
+        sx={{ width: '10px', color: 'black'  }}  // You can still apply this to the button
+        onClick={() => handleLetterClick(letter)}
+        disabled={found}
+      >
+        {letter}
+      </Button>
+    </Grid2>
+  ))}
+</Grid2>
 
-      <Typography variant="h6" sx={{ marginTop: 2 }}>
-        Enter a word using all of these letters (it must be the correct word):
-      </Typography>
 
       <TextField
         value={input}
@@ -110,7 +104,7 @@ const PangramGame = () => {
           variant="contained"
           color="primary"
           onClick={checkPangram}
-          sx={{ marginRight: 2 }}
+          sx={{ marginRight: 2, }}
           disabled={found} // Disable button after finding the pangram
         >
           Submit Word
