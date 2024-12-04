@@ -10,12 +10,15 @@ const FinishPage = ({ playerScore, onRestart }) => {
       <Typography variant="h4" gutterBottom>
         Congratulations!
       </Typography>
-      <Typography variant="h6" gutterBottom>
+      {/* <Typography variant="h6" gutterBottom>
         Your Score: {playerScore}
-      </Typography>
+      </Typography> */}
       <Box sx={{ my: 4 }}>
         <Typography variant="body1">
-          Great job! You've completed the game. Would you like to play again or return to the home page?
+          Your reward for completing the game is....
+        </Typography>
+        <Typography variant="body1">
+          A pass to indoor sky diving! (+1... me?)
         </Typography>
       </Box>
       
