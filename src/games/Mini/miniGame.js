@@ -4,148 +4,174 @@ import { useNavigate } from 'react-router-dom';
 
 const MiniCrossword = () => {
   const navigate = useNavigate();
-    // Clues for across and down words (5-letter words)
-    const handleMoveOn = () => {
-      navigate('/strands'); // Navigate to the first game
-    };
 
-    const [clues, setClues] = useState({
-        across: [
-            { number: 1, clue: "Celestial body that gives light", answer: "STARS" },
-            { number: 2, clue: "Melody's emotional core", answer: "HEART" },
-            { number: 3, clue: "Place of rest for travelers", answer: "HOTEL" },
-            { number: 4, clue: "Ancient writing material", answer: "PAPYR" },
-            { number: 5, clue: "Small stringed instrument", answer: "BANJO" }
-        ],
-        down: [
-            { number: 1, clue: "Cheerful greeting", answer: "SMILE" },
-            { number: 2, clue: "Soaring bird of prey", answer: "HAWK" },
-            { number: 3, clue: "Sweet sticky substance", answer: "HONEY" },
-            { number: 4, clue: "Vehicle with two wheels", answer: "BIKE" },
-            { number: 5, clue: "Cooking vessel", answer: "POT" }
-        ]
-    });
+  // Clues for across and down words (9-letter words)
+  const handleMoveOn = () => {
+    navigate('/strands'); // Navigate to the first game
+  };
 
-    // State for the grid
-    const [grid, setGrid] = useState(Array(5).fill().map(() => Array(5).fill('')));
-    
-    // State for user's guesses
-    const [userGuesses, setUserGuesses] = useState(Array(5).fill().map(() => Array(5).fill('')));
+  const [clues, setClues] = useState({
+    across: [
+      { number: 1, clue: "LAUGH", answer: "LAUGH" },
+      { number: 2, clue: "VEGETABLE", answer: "VEGETABLE" },
+      { number: 3, clue: "RUNS", answer: "RUNS" },
+      { number: 4, clue: "KITTY", answer: "KITTY" },
+    ],
+    down: [
+      { number: 1, clue: "GREEN", answer: "GREEN" },
+      { number: 2, clue: "BOY", answer: "BOY" },
+      { number: 3, clue: "SKIER", answer: "SKIER" },
+      { number: 4, clue: "GYM", answer: "GYM" },
+    ]
+  });
 
-    // Solution grid (for checking answers)
-    const [solution, setSolution] = useState(null);
+  // State for the grid (9x9)
+  const [grid, setGrid] = useState(Array(9).fill().map(() => Array(9).fill('')));
+  const [userGuesses, setUserGuesses] = useState(Array(9).fill().map(() => Array(9).fill('')));
 
-    // Check if the puzzle is solved
-    const [isSolved, setIsSolved] = useState(false);
+  // Black-out cells
+  const [disabledCells, setDisabledCells] = useState([]);
 
-    // Generate the crossword puzzle
-    const generateCrossword = () => {
-        // Predefined grid layout that ensures intersections
-        const newGrid = Array(5).fill().map(() => Array(5).fill(''));
-        const presetSolution = [
-            ['C', 'L', 'U', 'E', '1'],
-            ['C', 'L', 'U', 'E', '2'],
-            ['C', 'L', 'U', 'E', '3'],
-            ['C', 'L', 'U', 'E', '4'],
-            ['C', 'L', 'U', 'E', '5'],
-        ];
+  // Solution grid (for checking answers)
+  const [solution, setSolution] = useState(null);
 
-        setSolution(presetSolution);
-        setGrid(presetSolution);
-        setUserGuesses(Array(5).fill().map(() => Array(5).fill('')));
-        setIsSolved(false);
-    };
+  // Check if the puzzle is solved
+  const [isSolved, setIsSolved] = useState(false);
 
-    // Handle user input in grid cells
-    const handleCellChange = (row, col, value) => {
-        const newGuesses = [...userGuesses];
-        newGuesses[row][col] = value.toUpperCase();
-        setUserGuesses(newGuesses);
+  // Generate the crossword puzzle (now 9x9)
+  const generateCrossword = () => {
+    // Predefined grid layout with some blacked-out cells (example)
+    const newGrid = Array(9).fill().map(() => Array(9).fill(''));
+    const presetSolution = [
+      ['L', 'A', 'U', 'G', 'H', '', '', '', ''],
+      ['', '', '', 'R', '', '', '', '', ''],
+      ['V', 'E', 'G', 'E', 'T', 'A', 'B', 'L', 'E'],
+      ['', '', '', 'E', '', '', 'O', '', ''],
+      ['', 'R', 'U', 'N', 'S', '', 'Y', '', ''],
+      ['', '', '', '', 'K', '', '', 'G', ''],
+      ['', '', '', 'K', 'I', 'T', 'T', 'Y', ''],
+      ['', '', '', '', 'E', '', '', 'M', ''],
+      ['', '', '', '', 'R', '', '', '', ''],
+    ];
 
-        // Check if puzzle is solved
-        const allCorrect = solution.every((row, rowIndex) => 
-            row.every((cell, colIndex) => 
-                cell === '' || cell === newGuesses[rowIndex][colIndex]
-            )
-        );
-        setIsSolved(allCorrect);
-    };
+    // Define which cells to disable (black-out cells)
+    const newDisabledCells = [
+      [0, 5], [0, 6], [0, 7], [0, 8], // Disable certain cells
+      [1, 0],[1, 1], [1, 2], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8],
+      [3, 0], [3, 1], [3, 2], [3, 4], [3, 5], [3, 7], [3, 8],
+      [4, 0], [4, 5], [4, 7], [4, 8],
+      [5, 0], [5, 1], [5, 2], [5, 3], [5, 5], [5, 6], [5, 8],
+      [6, 0], [6, 1], [6, 2], [6, 8],
+      [7, 0], [7, 1], [7, 2], [7, 3], [7, 6], [7, 8], [7, 5],
+      [8, 0], [8, 1], [8, 2], [8,3], [8, 5], [8, 6], [8, 7], [8,8]
+    ];
 
-    // Initialize the puzzle on component mount
-    useEffect(() => {
-        generateCrossword();
-    }, []);
+    setSolution(presetSolution);
+    setGrid(newGrid);
+    setUserGuesses(Array(9).fill().map(() => Array(9).fill('')));
+    setDisabledCells(newDisabledCells);
+    setIsSolved(false);
+  };
 
-    return (
-        <Container maxWidth="md" justifyContent="center">
-            <Typography variant="h4" gutterBottom align="center" sx={{ my: 3 }}>
-                Mini Crossword Puzzle
+  // Handle user input in grid cells
+  const handleCellChange = (row, col, value) => {
+    if (disabledCells.some(cell => cell[0] === row && cell[1] === col)) {
+      return; // Don't allow input on blacked-out cells
+    }
+
+    const newGuesses = [...userGuesses];
+    newGuesses[row][col] = value.toUpperCase();
+    setUserGuesses(newGuesses);
+
+    // Check if puzzle is solved
+    const allCorrect = solution.every((row, rowIndex) => 
+      row.every((cell, colIndex) => 
+        cell === '' || cell === newGuesses[rowIndex][colIndex]
+      )
+    );
+    setIsSolved(allCorrect);
+  };
+
+  // Initialize the puzzle on component mount
+  useEffect(() => {
+    generateCrossword();
+  }, []);
+
+  return (
+    <Container maxWidth="md" justifyContent="center">
+      <Typography variant="h4" gutterBottom align="center" sx={{ my: 3 }}>
+        Mini Crossword Puzzle
+      </Typography>
+
+      <Grid2 
+        container 
+   
+        spacing={0} 
+        sx={{ mb: 3, maxWidth: '300px', mx: 'auto' }}
+      >
+        {userGuesses.map((row, rowIndex) => (
+          row.map((cell, colIndex) => (
+            <Grid2 item       size={12/9} xs={1} key={`${rowIndex}-${colIndex}`}>
+              <TextField 
+                variant="outlined"
+                InputProps={{
+                  style: {
+                    padding: '0px',
+                    width: '30px',
+                    height: '30px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    backgroundColor: disabledCells.some(c => c[0] === rowIndex && c[1] === colIndex) ? '#000' : '',
+                  }
+                }}
+                inputProps={{
+                  maxLength: 1,
+                  style: { 
+                    padding: '0',
+                    textAlign: 'center',
+                    textTransform: 'uppercase'
+                  }
+                }}
+                value={cell}
+                onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                disabled={disabledCells.some(c => c[0] === rowIndex && c[1] === colIndex)} // Disable input
+              />
+            </Grid2>
+          ))
+        ))}
+      </Grid2>
+
+      {/* Clues Section */}
+      <Grid2 container spacing={2} sx={{ display: 'flex', flexDirection: 'row', mb: 3, width: '100%', maxWidth: '700px', mx: 'auto', justifyContent:'center' }}>
+        {/* Across Clues */}
+        <Grid2 item xs={12} md={6} minWidth='250px'>
+          <Typography variant="h6">Across</Typography>
+          {clues.across.map((clue, index) => (
+            <Typography key={index} variant="body1">
+              {clue.number}. {clue.clue}
             </Typography>
+          ))}
+        </Grid2>
 
-            <Grid2 
-                container 
-                spacing={0} 
-                sx={{ mb: 3, width: '100%', maxWidth: '400px', mx: 'auto' }}
-            >
-                {userGuesses.map((row, rowIndex) => (
-                    row.map((cell, colIndex) => (
-                        <Grid2 item size={12/5} spacing={5} key={`${rowIndex}-${colIndex}`}>
-                            <TextField 
-                                variant="outlined"
-                                InputProps={{
-                                    style: {
-                                        width: '50px',
-                                        height: '50px',
-                                        textAlign: 'center',
-                                        fontSize: '24px',
-                                    }
-                                }}
-                                inputProps={{
-                                    maxLength: 1,
-                                    style: { 
-                                        textAlign: 'center',
-                                        textTransform: 'uppercase'
-                                    }
-                                }}
-                                value={cell}
-                                onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                            />
-                        </Grid2>
-                    ))
-                ))}
-            </Grid2>
+        {/* Down Clues */}
+        <Grid2 item xs={12} md={6} minWidth='250px'>
+          <Typography variant="h6">Down</Typography>
+          {clues.down.map((clue, index) => (
+            <Typography key={index} variant="body1">
+              {clue.number}. {clue.clue}
+            </Typography>
+          ))}
+        </Grid2>
+      </Grid2>
 
-            {/* Clues Section */}
-            <Grid2 container spacing={2}   sx={{ display: 'flex', flexDirection: 'row', mb: 3, width: '100%', maxWidth: '700px', mx: 'auto', justifyContent:'center' }}>
-                {/* Across Clues */}
-                <Grid2 item xs={12} md={6} minWidth='250px'>
-                    <Typography variant="h6"  >Across</Typography>
-                    {clues.across.map((clue, index) => (
-                        <Typography key={index} variant="body1">
-                            {clue.number}. {clue.clue}
-                        </Typography>
-                    ))}
-                </Grid2>
-
-                {/* Down Clues */}
-                <Grid2 item xs={12} md={6} minWidth='250px'>
-                    <Typography variant="h6">Down</Typography>
-                    {clues.down.map((clue, index) => (
-                        <Typography key={index} variant="body1">
-                            {clue.number}. {clue.clue}
-                        </Typography>
-                    ))}
-                </Grid2>
-            </Grid2>
-
-            {/* Solve Status and Buttons */}
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {isSolved && (
-                  <>
-                    <Typography color="success.main" variant="h6">
-                        Congratulations! Puzzle Solved!
-                    </Typography>
-        <Button 
+      {/* Solve Status and Buttons */}
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {isSolved && (
+          <>
+            <Typography color="success.main" variant="h6">
+              Congratulations! Puzzle Solved!
+            </Typography>
+            <Button 
               variant="contained" 
               color="primary" 
               size="large" 
@@ -154,12 +180,11 @@ const MiniCrossword = () => {
             >
               Move on
             </Button>
-                    </>
-                )}
-               
-            </Box>
-        </Container>
-    );
+          </>
+        )}
+      </Box>
+    </Container>
+  );
 };
 
 export default MiniCrossword;
