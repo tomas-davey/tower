@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 
 const MinuteCryptic = () => {
-  const [clue, setClue] = useState("This is a cryptic clue.");
-  const [answer, setAnswer] = useState("CRYPTO"); // The correct answer
+  const [clue, setClue] = useState("Inside Hannah's and Tom's head is an artists missing piece on love (5)");
+  const [answer, setAnswer] = useState("HEART"); // The correct answer
   const [input, setInput] = useState(Array(answer.length).fill(""));
   const [feedback, setFeedback] = useState("");
   const navigate = useNavigate();

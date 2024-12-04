@@ -8,6 +8,7 @@ import FinishPage from './pages/FinishPage.js';
 import MiniCrossword from './games/Mini/miniGame.js';
 import Strands from './games/Strands/strands.js';
 import MinuteCryptic from './games/Cryptic/cryptic.js';
+import Wordle from './games/Wordle/wordle.js'
 
 const App = () => {
   return (
@@ -46,6 +47,13 @@ const App = () => {
                element={
                  <GamePage>
                    <MinuteCryptic />
+                 </GamePage>
+               } 
+        />
+         <Route path="/wordle" 
+               element={
+                 <GamePage>
+                   <Wordle />
                  </GamePage>
                } 
         />

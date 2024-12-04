@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Box, Grid2, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,7 +26,33 @@ const Strands = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   
   const gridRef = useRef(null);
+  const containerRef = useRef(null);
   const isSwipingRef = useRef(false);
+
+  // Prevent default touch and scroll behaviors
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      // Prevent pull-to-refresh and other default touch behaviors
+      container.style.touchAction = 'none';
+      container.style.overscrollBehavior = 'contain';
+      
+      // Prevent default touch behaviors
+      const preventDefaults = (e) => {
+        e.preventDefault();
+      };
+
+      container.addEventListener('touchstart', preventDefaults, { passive: false });
+      container.addEventListener('touchmove', preventDefaults, { passive: false });
+      container.addEventListener('touchend', preventDefaults, { passive: false });
+
+      return () => {
+        container.removeEventListener('touchstart', preventDefaults);
+        container.removeEventListener('touchmove', preventDefaults);
+        container.removeEventListener('touchend', preventDefaults);
+      };
+    }
+  }, []);
 
   // Check if two cells are adjacent (either horizontally, vertically, or diagonally)
   const isAdjacent = useCallback((lastCell, rowIndex, colIndex) => {
@@ -77,9 +103,6 @@ const Strands = () => {
     return null;
   }, [letterGrid]);
   
-  
-
-
   // Handle touch/mouse start for swipe
   const handleStart = useCallback((event) => {
     if (gameOver) return;
@@ -89,11 +112,11 @@ const Strands = () => {
     
     // Determine touch point (works for both touch and mouse events)
     const clientX = event.type.includes('touch') 
-      ? event.touches[0].clientX 
-      : event.clientX;
+      ? (event ).touches[0].clientX 
+      : (event ).clientX;
     const clientY = event.type.includes('touch') 
-      ? event.touches[0].clientY 
-      : event.clientY;
+      ? (event ).touches[0].clientY 
+      : (event ).clientY;
     
     const cellAtPoint = getCellAtPoint(clientX, clientY);
     
@@ -114,17 +137,19 @@ const Strands = () => {
     const currentTime = Date.now();
     if (currentTime - lastMoveTime < throttleInterval) {
         return;
-      }
-      lastMoveTime = currentTime;
+    }
+    lastMoveTime = currentTime;
+    
     // Prevent default to stop scrolling/selection
+    event.preventDefault();
     
     // Determine touch point (works for both touch and mouse events)
     const clientX = event.type.includes('touch') 
-      ? event.touches[0].clientX 
-      : event.clientX;
+      ? (event ).touches[0].clientX 
+      : (event).clientX;
     const clientY = event.type.includes('touch') 
-      ? event.touches[0].clientY 
-      : event.clientY;
+      ? (event ).touches[0].clientY 
+      : (event ).clientY;
     
     const cellAtPoint = getCellAtPoint(clientX, clientY);
     
@@ -159,7 +184,7 @@ const Strands = () => {
     }
   }, [currentPath, isAdjacent, getCellAtPoint]);
 
-  const isCellLastInPath = (rowIndex, colIndex) => {
+  const isCellLastInPath = (rowIndex , colIndex) => {
     const lastCell = currentPath[currentPath.length - 2];
     return lastCell && lastCell.row === rowIndex && lastCell.col === colIndex;
   };
@@ -201,14 +226,21 @@ const Strands = () => {
   // Navigation
   const navigate = useNavigate();
   const handleMoveOn = () => {
-    navigate('/cryptic');
+    navigate('/wordle');
   };
 
   // Check if all words are found
   const allWordsFound = validWords.length === wordList.length;
 
   return (
-    <Box>
+    <Box 
+      ref={containerRef}
+      style={{ 
+        userSelect: 'none', 
+        touchAction: 'none', 
+        overscrollBehavior: 'contain' 
+      }}
+    >
       <Typography variant="h4" align="center" gutterBottom>
         Time well spent
       </Typography>
@@ -227,7 +259,7 @@ const Strands = () => {
         onMouseLeave={handleEnd}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <Grid2 container spacing={1} justifyContent="center" style={{ maxWidth: '260px' }}      ref={gridRef}>
+        <Grid2 container spacing={1} justifyContent="center" style={{ maxWidth: '260px' }} ref={gridRef}>
           {letterGrid.map((row, rowIndex) => (
             <Grid2 container item key={rowIndex} spacing={1} justifyContent="center">
               {row.map((letter, colIndex) => (
