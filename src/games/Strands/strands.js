@@ -7,7 +7,7 @@ const wordList = ["PERFECTDATES", "BRIGHTON", "BOWLING", "ICESKATING", "HIKES", 
 
 // Sample 5x5 grid
 const sampleGrid = [
-  ['X', 'T', 'A', 'F', 'E', 'P'],
+  ['I', 'T', 'A', 'F', 'E', 'P'],
   ['N', 'K', 'C', 'E', 'R', 'G'],
   ['G', 'E', 'S', 'T', 'I', 'N'],
   ['I', 'C', 'D', 'S', 'B', 'L'],
@@ -266,9 +266,9 @@ const Strands = () => {
         onMouseLeave={handleEnd}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <Grid2 container spacing={1} justifyContent="center" style={{ maxWidth: '260px' }} ref={gridRef}>
+        <Grid2 container spacing={2} justifyContent="center" style={{ maxWidth: '260px' }} ref={gridRef}>
           {letterGrid.map((row, rowIndex) => (
-            <Grid2 container item key={rowIndex} spacing={1} justifyContent="center">
+            <Grid2 container item key={rowIndex} spacing={2} justifyContent="center">
               {row.map((letter, colIndex) => (
                 <Grid2 item size={2} xs={2} key={colIndex}>
                   <Button

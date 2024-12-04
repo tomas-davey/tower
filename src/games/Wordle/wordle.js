@@ -6,7 +6,6 @@ import {
   Grid, 
   TextField, 
   Typography, 
-  Modal, 
   Paper 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +19,7 @@ const Wordle = () => {
   // State management
   const [word, setWord] = useState('');
   const [guesses, setGuesses] = useState(Array(6).fill(''));
-  const [currentGuess, setCurrentGuess] = useState('');
+  const [currentGuess, setCurrentGuess] = useState(Array(5).fill(''));
   const [results, setResults] = useState(Array(6).fill(Array(5).fill('')));
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
@@ -29,13 +28,9 @@ const Wordle = () => {
 
   const navigate = useNavigate();
   const handleMoveOn = () => {
-    navigate('/wordle');
+    navigate('/cryptic');
   };
- <Box display="flex" justifyContent="center" mt={2}>
-          <Button variant="contained" color="primary" onClick={handleMoveOn}>
-            Move On
-          </Button>
-        </Box>
+
   // Initialize game on component mount
   useEffect(() => {
     startNewGame();
@@ -46,7 +41,7 @@ const Wordle = () => {
     const randomWord = WORDS[Math.floor(Math.random() * WORDS.length)];
     setWord(randomWord);
     setGuesses(Array(6).fill(''));
-    setCurrentGuess('');
+    setCurrentGuess(Array(5).fill(''));
     setResults(Array(6).fill(Array(5).fill('')));
     setGameOver(false);
     setGameWon(false);
@@ -89,64 +84,49 @@ const Wordle = () => {
     return result;
   }, [word]);
 
-  // Handle keyboard input
-  const handleKeyPress = useCallback((event) => {
-    const key = event.key.toUpperCase();
+  // Handle input change
+  const handleInputChange = (event, index) => {
+    const { value } = event.target;
+    const newGuess = [...currentGuess];
+    newGuess[index] = value.toUpperCase();
+    setCurrentGuess(newGuess);
+  };
 
-    // Prevent input if game is over
-    if (gameOver) return;
-
-    // Handle letter input
-    if (/^[A-Z]$/.test(key) && currentGuess.length < 5) {
-      setCurrentGuess(prev => prev + key);
+  // Handle submit (when user presses "Enter")
+  const handleSubmitGuess = () => {
+    const guess = currentGuess.join('');
+    if (guess.length !== 5) {
+      setMessage('Guess must be 5 letters long!');
       return;
     }
 
-    // Handle backspace
-    if (key === 'BACKSPACE') {
-      setCurrentGuess(prev => prev.slice(0, -1));
+    const newResults = [...results];
+    newResults[currentRow] = checkGuess(guess);
+    setResults(newResults);
+
+    const newGuesses = [...guesses];
+    newGuesses[currentRow] = guess;
+    setGuesses(newGuesses);
+
+    // Check for win
+    if (guess === word) {
+      setGameWon(true);
+      setGameOver(true);
+      setMessage('Congratulations! You won!');
       return;
     }
 
-    // Handle enter
-    if (key === 'ENTER' && currentGuess.length === 5) {
-      // Check if guess is valid
-      const newResults = [...results];
-      newResults[currentRow] = checkGuess(currentGuess);
-      setResults(newResults);
-
-      const newGuesses = [...guesses];
-      newGuesses[currentRow] = currentGuess;
-      setGuesses(newGuesses);
-
-      // Check for win
-      if (currentGuess === word) {
-        setGameWon(true);
-        setGameOver(true);
-        setMessage('Congratulations! You won!');
-        return;
-      }
-
-      // Check for game over
-      if (currentRow === 5) {
-        setGameOver(true);
-        setMessage(`Game Over! The word was ${word}`);
-        return;
-      }
-
-      // Move to next row
-      setCurrentRow(prev => prev + 1);
-      setCurrentGuess('');
+    // Check for game over
+    if (currentRow === 5) {
+      setGameOver(true);
+      setMessage(`Game Over! The word was ${word}`);
+      return;
     }
-  }, [currentGuess, currentRow, word, results, checkGuess, gameOver]);
 
-  // Add event listener for keyboard
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [handleKeyPress]);
+    // Move to next row
+    setCurrentRow(prev => prev + 1);
+    setCurrentGuess(Array(5).fill(''));
+  };
 
   // Render color based on letter result
   const getLetterColor = (result) => {
@@ -171,32 +151,26 @@ const Wordle = () => {
             <Grid container item key={rowIndex} spacing={1} justifyContent="center">
               {Array.from({ length: 5 }).map((_, colIndex) => (
                 <Grid item key={colIndex}>
-                  <Paper
-                    elevation={3}
+                  <TextField
+                    value={rowIndex < currentRow ? guesses[rowIndex][colIndex] : rowIndex === currentRow ? currentGuess[colIndex] : ''}
+                    onChange={(e) => handleInputChange(e, colIndex)}
+                    inputProps={{
+                      maxLength: 1,
+                      style: { textTransform: 'uppercase', textAlign: 'center', fontWeight: 'bold' }
+                    }}
                     sx={{
                       width: 60,
                       height: 60,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 
-                        rowIndex === currentRow && currentGuess[colIndex] 
-                          ? 'lightblue' 
-                          : results[rowIndex][colIndex] 
-                            ? getLetterColor(results[rowIndex][colIndex]) 
-                            : 'white',
+                      '& .MuiInputBase-input': {
+                        textAlign: 'center',
+                        fontSize: '1.5rem',
+                      },
+                      backgroundColor: rowIndex === currentRow && currentGuess[colIndex] ? 'lightblue' : results[rowIndex][colIndex] ? getLetterColor(results[rowIndex][colIndex]) : 'white',
                       border: '2px solid gray',
-                      color: 'black',
-                      fontWeight: 'bold',
-                      fontSize: '2rem'
+                      fontWeight: 'bold'
                     }}
-                  >
-                    {rowIndex < currentRow 
-                      ? guesses[rowIndex][colIndex] 
-                      : rowIndex === currentRow 
-                        ? currentGuess[colIndex] 
-                        : ''}
-                  </Paper>
+                    disabled={gameOver || rowIndex < currentRow}
+                  />
                 </Grid>
               ))}
             </Grid>
@@ -205,26 +179,38 @@ const Wordle = () => {
 
         {/* Message Area */}
         {message && (
-  <>
-    <Typography 
-      variant="body1" 
-      color={gameWon ? 'green' : 'error'} 
-      sx={{ mt: 2 }}
-    >
-      {message}
-    </Typography>
-    {message === 'Congratulations! You won!' && (
-      <Box display="flex" justifyContent="center" mt={2}>
-        <Button variant="contained" color="primary" onClick={handleMoveOn}>
-          Move On
-        </Button>
-      </Box>
-    )}
-  </>
-)}
+          <Typography 
+            variant="body1" 
+            color={gameWon ? 'green' : 'error'} 
+            sx={{ mt: 2 }}
+          >
+            {message}
+          </Typography>
+        )}
 
+        {/* Submit Guess Button */}
+        {!gameOver && (
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleSubmitGuess} 
+            sx={{ mt: 2 }}
+          >
+            Submit Guess
+          </Button>
+        )}
 
-       
+        {/* New Game Button */}
+        {gameOver && (
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleMoveOn} 
+            sx={{ mt: 2 }}
+          >
+            Move On
+          </Button>
+        )}
       </Box>
     </Container>
   );
