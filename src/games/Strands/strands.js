@@ -7,7 +7,7 @@ const wordList = ["PERFECTDATES", "BRIGHTON", "BOWLING", "ICESKATING", "HIKES", 
 
 // Sample 5x5 grid
 const sampleGrid = [
-  ['I', 'T', 'A', 'F', 'E', 'P'],
+  ['X', 'T', 'A', 'F', 'E', 'P'],
   ['N', 'K', 'C', 'E', 'R', 'G'],
   ['G', 'E', 'S', 'T', 'I', 'N'],
   ['I', 'C', 'D', 'S', 'B', 'L'],
@@ -32,23 +32,30 @@ const Strands = () => {
   // Prevent default touch and scroll behaviors
   useEffect(() => {
     const container = containerRef.current;
+  
     if (container) {
       // Prevent pull-to-refresh and other default touch behaviors
       container.style.touchAction = 'none';
       container.style.overscrollBehavior = 'contain';
-      
-      // Prevent default touch behaviors
+  
       const preventDefaults = (e) => {
-        e.preventDefault();
+        if (e.cancelable) {
+          e.preventDefault(); // Only call preventDefault if the event is cancelable
+        }
       };
-
-      container.addEventListener('touchstart', preventDefaults, { passive: false });
-      container.addEventListener('touchmove', preventDefaults, { passive: false });
+  
+      const disablePullToRefresh = (e) => {
+        if (e.touches && e.touches.length > 1) return; // Ignore multi-touch gestures
+        preventDefaults(e);
+      };
+  
+      container.addEventListener('touchstart', disablePullToRefresh, { passive: false });
+      container.addEventListener('touchmove', disablePullToRefresh, { passive: false });
       container.addEventListener('touchend', preventDefaults, { passive: false });
-
+  
       return () => {
-        container.removeEventListener('touchstart', preventDefaults);
-        container.removeEventListener('touchmove', preventDefaults);
+        container.removeEventListener('touchstart', disablePullToRefresh);
+        container.removeEventListener('touchmove', disablePullToRefresh);
         container.removeEventListener('touchend', preventDefaults);
       };
     }
