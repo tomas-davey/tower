@@ -23,7 +23,7 @@ const FinishPage = ({ playerScore, onRestart }) => {
       </Box>
 
       <img
-                src="/Capture.png"
+                src="/fly.png"
                 alt="Game Logo"
                 style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }}
               />
