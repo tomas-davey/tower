@@ -308,11 +308,17 @@ const Strands = () => {
       </Box>
 
       {/* Show Move On button if all words are found */}
-      {allWordsFound && (
+      {!allWordsFound && (
         <Box display="flex" justifyContent="center" mt={2}>
-          <Button variant="contained" color="primary" onClick={handleMoveOn}>
-            Move On
-          </Button>
+          <Button 
+             variant="contained" 
+             color="primary" 
+             size="large" 
+             onClick={handleMoveOn} 
+             sx={{ marginTop: 4 }}
+           >
+             Move on
+           </Button>
         </Box>
       )}
     </Box>

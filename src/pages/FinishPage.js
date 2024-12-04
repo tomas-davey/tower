@@ -21,6 +21,12 @@ const FinishPage = ({ playerScore, onRestart }) => {
           A pass to indoor sky diving! (+1... me?)
         </Typography>
       </Box>
+
+      <img
+                src="/Capture.png"
+                alt="Game Logo"
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }}
+              />
       
     </Container>
   );

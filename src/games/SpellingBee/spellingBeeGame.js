@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, Grid2 } from '@mui/material';
+import { Box, Typography, Button, TextField, Grid2, Alert } from '@mui/material';
 import { pangramData } from './spellingBeeData';
 import { useNavigate } from 'react-router-dom';
 
@@ -52,7 +52,7 @@ const PangramGame = () => {
     if (inputSet.size === pangramSet.size && [...inputSet].every(letter => pangramSet.has(letter))) {
         if (pangramWord === input) {
             setFound(true);
-            setMessage(`Congratulations! You found the pangram: "${pangramWord}"`);        }
+       }
         else {
             setMessage(`Oops! Try again. This is not the pangram`);
         }
@@ -67,7 +67,7 @@ const PangramGame = () => {
         Pangram Game
       </Typography>
       <Typography variant="h6" gutterBottom>
-        Find the word that uses all of these letters:
+        Find the word that uses all of these letters at least once:
       </Typography>
       <Grid2 container spacing={1} justifyContent="center" sx={{ marginBottom: 2 }}>
   {letters.map((letter, index) => (
@@ -120,26 +120,33 @@ const PangramGame = () => {
           Clear
         </Button>
 
-        {found && (
-          <>
-          <Typography variant="h5" color="success.main" sx={{ marginTop: 2 }}>
-            You have completed the game! Your word: "{pangramWord}"
-          </Typography>
-           <Button 
-           variant="contained" 
-           color="primary" 
-           size="large" 
-           onClick={handleMoveOn} 
-           sx={{ marginTop: 4 }}
-         >
-           Move on
-         </Button>
-         </>
-        )}
 
-        <Typography variant="body1" sx={{ marginTop: 2 }}>
-          {message}
-        </Typography>
+{found && (
+        <Box mt={2}>
+          <Alert severity={'success'}>
+                Hell Yeah! You really are "{pangramWord}"
+          </Alert>
+    
+             <Button 
+             variant="contained" 
+             color="primary" 
+             size="large" 
+             onClick={handleMoveOn} 
+             sx={{ marginTop: 4 }}
+           >
+             Move on
+           </Button>
+          
+        </Box>
+      )}
+      {!found && (
+        <Alert severity={'error'}>
+        {message}
+         </Alert>
+   
+      )}
+ 
+       
 
       </Box>
     </Box>

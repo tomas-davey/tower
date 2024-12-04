@@ -3,9 +3,10 @@ import {
   Box, 
   Button, 
   Container, 
-  Grid, 
+  Grid2, 
   TextField, 
   Typography, 
+  Alert,
   Paper 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -142,16 +143,27 @@ const Wordle = () => {
     <Container maxWidth="sm">
       <Box sx={{ textAlign: 'center', mt: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Wordle Clone
+          Wordle
         </Typography>
 
         {/* Game Grid */}
-        <Grid container spacing={1} justifyContent="center">
+        <Grid2 container spacing={1} justifyContent="center">
           {guesses.map((guess, rowIndex) => (
-            <Grid container item key={rowIndex} spacing={1} justifyContent="center">
+            <Grid2 container item key={rowIndex} spacing={1} justifyContent="center">
               {Array.from({ length: 5 }).map((_, colIndex) => (
-                <Grid item key={colIndex}>
-                  <TextField
+                <Grid2 item size={12/5} key={colIndex}>
+                    <TextField
+                     value={rowIndex < currentRow ? guesses[rowIndex][colIndex] : rowIndex === currentRow ? currentGuess[colIndex] : ''}
+                     onChange={(e) => handleInputChange(e, colIndex)}
+                     inputProps={{
+                        maxLength: 1,
+                        style: { textTransform: 'uppercase', textAlign: 'center', fontWeight: 'bold' }
+                      }}
+                      disabled={gameOver || rowIndex < currentRow}
+                      sx={{ backgroundColor: rowIndex === currentRow && currentGuess[colIndex] ? 'white' : results[rowIndex][colIndex] ? getLetterColor(results[rowIndex][colIndex]) : 'white',}}
+                     />
+
+                  {/* <TextField
                     value={rowIndex < currentRow ? guesses[rowIndex][colIndex] : rowIndex === currentRow ? currentGuess[colIndex] : ''}
                     onChange={(e) => handleInputChange(e, colIndex)}
                     inputProps={{
@@ -159,8 +171,8 @@ const Wordle = () => {
                       style: { textTransform: 'uppercase', textAlign: 'center', fontWeight: 'bold' }
                     }}
                     sx={{
-                      width: 60,
-                      height: 60,
+                      width: 40,
+                      height: 40,
                       '& .MuiInputBase-input': {
                         textAlign: 'center',
                         fontSize: '1.5rem',
@@ -170,22 +182,25 @@ const Wordle = () => {
                       fontWeight: 'bold'
                     }}
                     disabled={gameOver || rowIndex < currentRow}
-                  />
-                </Grid>
+                  /> */}
+                </Grid2>
               ))}
-            </Grid>
+            </Grid2>
           ))}
-        </Grid>
+        </Grid2>
 
         {/* Message Area */}
         {message && (
-          <Typography 
-            variant="body1" 
-            color={gameWon ? 'green' : 'error'} 
-            sx={{ mt: 2 }}
-          >
-            {message}
-          </Typography>
+        //   <Typography 
+        //     variant="body1" 
+        //     color={gameWon ? 'green' : 'error'} 
+        //     sx={{ mt: 2 }}
+        //   >
+        //     {message}
+        //   </Typography>
+           <Alert severity={gameWon ? 'success' : "error"}>
+           {message}
+         </Alert>
         )}
 
         {/* Submit Guess Button */}

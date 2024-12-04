@@ -23,11 +23,11 @@ const HomePage = () => {
           {/* Left Section */}
           <Grid2 item size={{xs: 12, sm: 6}}>
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-              <Typography variant="h3" gutterBottom>
-                Welcome to My Games 
+              <Typography variant="h3" gutterBottom fontWeight='bold'>
+                Welcome to The Tower
               </Typography>
-              <Typography variant="body1" gutterBottom>
-                A series of fun and challenging games inspired by NYT.
+              <Typography variant="body1" gutterBottom fontWeight='bold'>
+                A series of fun games you have to complete to unlock your present!
               </Typography>
               <Button
                 variant="contained"

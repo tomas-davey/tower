@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Grid2, Button, Box } from '@mui/material';
+import { Typography, Grid2, Button, Box, Alert } from '@mui/material';
 import { connectionsData } from './connectionsData';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,11 +20,12 @@ const ConnectionsGame = () => {
   const [lives, setLives] = useState(4);
   const [message, setMessage] = useState("");
   const [gameOver, setGameOver] = useState(false);
+  const [wrongGuesses, setWrongGuesses] = useState([]);  // Track wrong guesses
   const navigate = useNavigate();
 
   useEffect(() => {
     setShuffledWords(shuffleArray(words)); // Shuffle words on initial render
-    console.log(words)
+    console.log(words);
   }, [words]);
 
   const handleMoveOn = () => {
@@ -40,16 +41,27 @@ const ConnectionsGame = () => {
   };
 
   const checkSelection = () => {
+    // Check if the selected group was already guessed wrong
+    const selectedGroupSet = new Set(selected);
+    for (const wrongGroup of wrongGuesses) {
+      const wrongGroupSet = new Set(wrongGroup);
+      if (selectedGroupSet.size === wrongGroupSet.size && [...selectedGroupSet].every(item => wrongGroupSet.has(item))) {
+        setMessage("You've already tried this wrong combination!");
+        return;
+      }
+    }
+
     // Iterate through all groups
     for (const [groupName, groupWords] of Object.entries(groups)) {
       const selectedWordsInGroup = selected.filter((word) => groupWords.includes(word));
-  
+
       if (selectedWordsInGroup.length === 4) {
         // If all 4 words of the group are selected correctly
         setCompletedGroups([ ...completedGroups, { name: groupName, words: groupWords } ]);
         setShuffledWords((prevWords) => prevWords.filter((word) => !groupWords.includes(word)));
         setMessage(`Correct! You found the group: ${groupName}.`);
         setSelected([]);
+        console.log(completedGroups)
         return;
       } else if (selectedWordsInGroup.length === 3) {
         // If the player selects 3 words of a group, let them know they're 1 word away
@@ -57,23 +69,38 @@ const ConnectionsGame = () => {
         const remainingLives = lives - 1;
         setLives(remainingLives);
         if (remainingLives === 0) {
+          setCompletedGroups(Object.entries(groups).map(([groupName, groupWords]) => ({
+            name: groupName,
+            words: groupWords,
+          })));
+          setShuffledWords([])
+          // setCompletedGroups(connectionsData)
           setGameOver(true);
+    
         }
         return;
       }
     }
-  
+
     // Handle incorrect selection
     const remainingLives = lives - 1;
     setLives(remainingLives);
     setMessage("Incorrect group. Try again!");
-  
+
+    // Add the wrong guess to the wrongGuesses state
+    setWrongGuesses([...wrongGuesses, selected]);
+
     if (remainingLives === 0) {
+      setCompletedGroups(Object.entries(groups).map(([groupName, groupWords]) => ({
+        name: groupName,
+        words: groupWords,
+      })));
+      setShuffledWords([])
       setGameOver(true);
     }
   };
 
-  const isGameComplete = completedGroups.length === Object.keys(groups).length;
+  const isGameComplete = gameOver ? false : completedGroups.length === Object.keys(groups).length;
 
   return (
     <Box sx={{ textAlign: 'center', justifyContent: "center", marginTop: 4, padding: { sm: 4 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -83,7 +110,7 @@ const ConnectionsGame = () => {
       <Typography variant="body1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1.2rem' } }}>
         Select four words that share a common connection. Lives remaining: {lives}
       </Typography>
-      <Grid2 container spacing={1}  sx={{ marginTop: 2, maxWidth: '700px' }}>
+      <Grid2 container spacing={1} sx={{ marginTop: 2, maxWidth: '700px' }}>
         {/* Render completed groups as single grid items */}
         {completedGroups.map((group) => (
           <Grid2 item size={12} key={group.name}>
@@ -93,13 +120,13 @@ const ConnectionsGame = () => {
               fullWidth
               disabled
               sx={{
-                height: '100%',
+                minHeight: '80px',
                 textAlign: 'center',
                 padding: 2,
                 fontSize: { xs: '0.75rem', sm: '1rem' },  // Smaller font size
               }}
             >
-              <Typography variant="h6" sx={{px: '8px'}}>{group.name}</Typography>
+              <Typography variant="h6" sx={{ px: '8px' }}>{group.name}</Typography>
               <Typography variant="body2">{group.words.join(', ')}</Typography>
             </Button>
           </Grid2>
@@ -110,12 +137,15 @@ const ConnectionsGame = () => {
           <Grid2 item size={3} key={word}> {/* xs={3} ensures a 4x4 grid */}
             <Button
               variant="contained"
-              color={selected.includes(word) ? "primary" : "secondary"}
+
               onClick={() => handleWordClick(word)}
               fullWidth
               sx={{
+                backgroundColor: selected.includes(word) ? "#ADD8E6" : "#f0f0f0",
+
+                color: 'black',
+                minHeight: '80px',
                 fontSize: { xs: '0.75rem', sm: '1rem' },  // Smaller font size for mobile
-                padding: { xs: '8px', sm: '12px' },  // Reduced padding for compact look
                 whiteSpace: 'nowrap',  // Prevent word wrapping
               }}
             >
@@ -135,21 +165,27 @@ const ConnectionsGame = () => {
               sx={{
                 marginRight: 2,
                 fontSize: { xs: '0.75rem', sm: '1rem' },
-                padding: { xs: '8px', sm: '12px' },
+                padding: { xs: '2px', sm: '12px' },
               }}
             >
               Check Group
             </Button>
-            <Typography variant="body1" color="error" sx={{ marginTop: 2 }}>
-              {message}
-            </Typography>
+            
+           { message && (
+            <Alert severity={message.startsWith("Correct!") ? "success" : "error"}>
+    {message}
+  </Alert>
+)}
+
+          
           </>
         )}
         {isGameComplete && (
           <>
-            <Typography variant="h5" color="success.main" sx={{ marginTop: 2 }}>
-              Congratulations! You solved all groups!
-            </Typography>
+          <Alert severity={'success'}>
+          Congratulations! You solved all groups!
+  </Alert>
+      
             <Button
               variant="contained"
               color="primary"
@@ -166,15 +202,7 @@ const ConnectionsGame = () => {
             <Typography variant="h5" color="error" sx={{ marginTop: 2 }}>
               Game Over! You ran out of lives.
             </Typography>
-            <Typography variant="body1" sx={{ marginTop: 2 }}>
-              Here are the correct groups:
-            </Typography>
-            {Object.entries(groups).map(([groupName, groupWords]) => (
-              <Box key={groupName} sx={{ marginTop: 2 }}>
-                <Typography variant="h6">{groupName}:</Typography>
-                <Typography variant="body2">{groupWords.join(', ')}</Typography>
-              </Box>
-            ))}
+        
           </>
         )}
       </Box>
